@@ -1,0 +1,361 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+getgenv().Settings = {
+	AutoFarm = {
+		FarmingEnabled = false,
+		FarmingType = "Normal",
+		FarmingArea = "",
+		FarmingSingleChest = ""
+	},
+	AutoHatch = {
+		OpeningEggs = false,
+		SelectedEgg = "",
+		TripleEggs = false
+	},
+	Miscellaneous = {
+		ClaimRankRewards = false,
+		ClaimVIPRewards = false,
+		Hoverboard = "Original"
+	}
+}
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+local Frame = Library.Load({
+	Title = "PSX Hub",
+	Style = 1,
+	SizeX = 500,
+	SizeY = 350,
+	Theme = "Dark"
+})
+
+local Framework = ReplicatedStorage:WaitForChild("Framework")
+local GameLibrary = require(Framework:WaitForChild("Library"))
+local CurrencyOrder = {
+	"Diamonds",
+	"Gingerbread",
+	"Tech Coins",
+	"Fantasy Coins",
+	"Coins"
+}
+
+local Places = {
+	-- Miscellaneous
+	["VIP"] = {"VIP"},
+
+	-- Spawn
+	["Town"] = {"Town", "Town FRONT"},
+	["Forest"] = {"Forest", "Forest FRONT"},
+	["Beach"] = {"Beach", "Beach FRONT"},
+	["Mine"] = {"Mine", "Mine FRONT"},
+	["Winter"] = {"Winter", "Winter FRONT"},
+	["Glacier"] = {"Glacier", "Glacier Lake"},
+	["Desert"] = {"Desert", "Desert FRONT"},
+	["Volcano"] = {"Volcano", "Volcano FRONT"},
+
+	-- Fantasy
+	["Enchanted Forest"] = {"Enchanted Forest", "Enchanted Forest FRONT"},
+	["Ancient"] = {"Ancient"},
+	["Samurai"] = {"Samurai", "Samurai FRONT"},
+	["Candy"] = {"Candy"},
+	["Haunted"] = {"Haunted", "Haunted FRONT"},
+	["Hell"] = {"Hell"},
+	["Heaven"] = {"Heaven"},
+
+	-- Tech
+	["Ice Tech"] = {"Ice Tech"},
+	["Tech City"] = {"Tech City", "Tech City FRONT"},
+	["Dark Tech"] = {"Dark Tech", "Dark Tech FRONT"},
+	["Steampunk"] = {"Steampunk", "Steampunk FRONT"},
+	["Alien Forest"] = {"Alien Forest", "Alien Forest FRONT"},
+	["Alien Lab"] = {"Alien Forest", "Alien Lab FRONT"},
+}
+
+local AreaList = {
+	-- Miscellaneous
+	"All", "VIP",
+
+	-- Spawn
+	"Town", "Forest", "Beach", "Mine", "Winter", "Glacier", "Desert", "Volcano",
+
+	-- Fantasy
+	"Enchanted Forest", "Ancient", "Samurai", "Candy", "Haunted", "Hell", "Heaven",
+
+	-- Tech
+	"Ice Tech", "Tech City", "Dark Tech", "Steampunk", "Alien Lab", "Alien Forest",
+}
+
+local ChestList = {
+	-- Miscellaneous
+	"All",
+
+	-- Spawn
+	"Magma Chest",
+
+	-- Fantasy
+	"Enchanted Chest", "Hell Chest", "Haunted Chest", "Angel Chest", "Grand Heaven Chest",
+
+	-- Tech
+	"Giant Tech Chest", "Giant Steampunk Chest", "Giant Alien Chest",
+}
+
+local Folder = GameLibrary.Things
+local Coins = Folder:WaitForChild("Coins")
+local Lootbags = Folder:WaitForChild("Lootbags")
+local Orbs = Folder:WaitForChild("Orbs")
+Lootbags.ChildAdded:Connect(function(Lootbag)
+	repeat
+		task.wait()
+	until Lootbag:GetAttribute("ReadyForCollection", true)
+	Lootbag:SetAttribute("Collected", true)
+	GameLibrary.Network.Fire("Collect Lootbag", Lootbag.Name, Lootbag.CFrame.Position)
+	Lootbag:Destroy()
+end)
+
+Orbs.ChildAdded:Connect(function(Orb)
+	GameLibrary.Network.Fire("Claim Orbs", {Orb.Name})
+end)
+
+function FarmCoin(CoinId, PetId)
+	-- GameLibrary.Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
+	GameLibrary.Network.Invoke("Join Coin", CoinId, {PetId})
+	GameLibrary.Network.Fire("Farm Coin", CoinId, PetId)
+end
+
+function ReturnPets()
+	local ReturnTable = {}
+	local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
+	for _, PetData in ipairs(Save.Pets) do
+		if PetData.e then
+			table.insert(ReturnTable, PetData.uid)
+		end
+	end
+
+	return ReturnTable
+end
+
+function ReturnCoins(Area)
+	local ReturnTable = {}
+	local ListCoins = GameLibrary.Network.Invoke("Get Coins")
+	for Id, CoinData in pairs(ListCoins) do
+		if Area == "All" or table.find(Places[Area], CoinData.a) then
+			local Table = CoinData
+			Table.Index = Id
+			table.insert(ReturnTable, Table)
+		end
+	end
+
+	return ReturnTable
+end
+
+local AreaWorldTable = {}
+for _, v in pairs(ReplicatedStorage.Game.Coins:GetChildren()) do
+	for _, b in pairs(v:GetChildren()) do
+		table.insert(AreaWorldTable, b.Name)
+	end
+
+	table.insert(AreaWorldTable, v.Name)
+end
+
+function ReturnChests()
+    local ReturnTable = {}
+	local ListCoins = GameLibrary.Network.Invoke("Get Coins")
+    for Id, ChestData in pairs(ListCoins) do
+        local Table = ChestData
+        Table.Index = Id
+        for _, bb in pairs(AreaWorldTable) do
+            if string.find(ChestData.n, bb) then
+                local ExtraData = string.gsub(ChestData.n, bb .. " ", "")
+                if table.find(ChestList, ExtraData) then
+                    Table.n = ExtraData
+                    table.insert(ReturnTable, Table)
+                end
+            end
+        end
+    end
+
+    return ReturnTable
+end
+
+local FarmTab = Frame.New({
+	Title = "Farming"
+})
+
+FarmTab.Toggle({
+	Text = "AutoFarm",
+	Callback = function(Value)
+		Settings.AutoFarm.FarmingEnabled = Value
+		while task.wait() and Settings.AutoFarm.FarmingEnabled do
+			if Settings.AutoFarm.FarmingType == "Normal" then
+				for _, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
+					if Settings.AutoFarm.FarmingEnabled and Coins:FindFirstChild(CoinData.Index) then
+						for _, PetId in pairs(ReturnPets()) do
+							coroutine.wrap(function()
+								FarmCoin(CoinData.Index, PetId)
+							end)()
+						end
+
+						repeat
+							task.wait()
+						until not Coins:FindFirstChild(CoinData.Index)
+					end
+				end
+			elseif Settings.AutoFarm.FarmingType == "Chest" then
+				for _, ChestData in pairs(ReturnChests()) do
+					if Settings.AutoFarm.FarmingSingleChest == "All" or ChestData.n == Settings.AutoFarm.FarmingSingleChest then
+						for _, PetId in pairs(ReturnPets()) do
+							coroutine.wrap(function()
+								FarmCoin(ChestData.Index, PetId)
+							end)()
+						end
+
+						repeat
+							task.wait()
+						until not Coins:FindFirstChild(ChestData.Index) or #Coins[ChestData.Index].Pets:GetChildren() < 1
+					end
+				end
+			end
+		end
+	end,
+	Enabled = Settings.AutoFarm.FarmingEnabled or false
+})
+
+FarmTab.Dropdown({
+	Text = "Type",
+	Callback = function(Value)
+		Settings.AutoFarm.FarmingType = Value
+	end,
+	Options = {"Normal", "Chest"}
+})
+
+FarmTab.Dropdown({
+	Text = "Chest",
+	Callback = function(Value)
+		Settings.AutoFarm.FarmingSingleChest = Value
+	end,
+	Options = ChestList
+})
+
+FarmTab.Dropdown({
+	Text = "Area",
+	Callback = function(Value)
+		Settings.AutoFarm.FarmingArea = Value
+	end,
+	Options = AreaList
+})
+
+local MyEggData = {}
+for EggName, EggData in pairs(GameLibrary.Directory.Eggs) do
+	table.insert(MyEggData, {
+		Name = EggName,
+		Currency = EggData.currency,
+		Cost = EggData.cost
+	})
+end
+
+table.sort(MyEggData, function(a, b)
+	return a.Cost < b.Cost
+end)
+
+local EggData = {}
+for _, Currency in pairs(CurrencyOrder) do
+	-- table.insert(EggData, "\t")
+	table.insert(EggData, "\255 " .. Currency .. " \255")
+	for _, Data in pairs(MyEggData) do
+		if Data.Currency == Currency then
+			table.insert(EggData, Data.Name)
+		end
+	end
+end
+
+local EggTab = Frame.New({
+	Title = "Eggs"
+})
+
+EggTab.Toggle({
+	Text = "Open Eggs",
+	Callback = function(Value)
+		Settings.AutoHatch.OpenEggs = Value
+		while task.wait() and Settings.AutoHatch.OpenEggs do
+			GameLibrary.Network.Invoke("Buy Egg", Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
+		end
+	end,
+	Enabled = Settings.AutoHatch.OpenEggs or false
+})
+
+EggTab.Dropdown({
+	Text = "Egg",
+	Callback = function(Value)
+		Settings.AutoHatch.SelectedEgg = Value
+	end,
+	Options = EggData
+})
+
+EggTab.Toggle({
+	Text = "Triple Eggs",
+	Callback = function(Value)
+		Settings.AutoHatch.TripleEggs = Value
+	end,
+	Enabled = Settings.AutoHatch.TripleEggs or false
+})
+
+local MiscellaneousTab = Frame.New({
+	Title = "Miscellaneous"
+})
+
+MiscellaneousTab.Button({
+	Text = "Remove Open Animation",
+	Callback = function()
+		for _, v in pairs(getgc(true)) do
+			if (typeof(v) == "table" and rawget(v, "OpenEgg")) then
+				v.OpenEgg = function()
+					return
+				end
+			end
+		end
+	end
+})
+
+MiscellaneousTab.Button({
+	Text = "Free Passes",
+	Callback = function()
+		local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
+		Save.EquippedHoverboard = Settings.Miscellaneous.Hoverboard or "Original"
+		for _, v in pairs(getreg()) do
+			if (typeof(v) == "table" and rawget(v, "Owns")) then
+				v.Owns = function()
+					return true
+				end
+			end
+		end
+	end
+})
+
+MiscellaneousTab.Toggle({
+	Text = "Claim Rank Rewards",
+	Callback = function(Value)
+		Settings.Miscellaneous.ClaimRankRewards = Value
+		while wait() and Settings.Miscellaneous.ClaimRankRewards do
+			GameLibrary.Network.Invoke("Redeem Rank Rewards")
+		end
+	end,
+	Enabled = Settings.Miscellaneous.ClaimRankRewards or false
+})
+
+MiscellaneousTab.Toggle({
+	Text = "Claim VIP Rewards",
+	Callback = function(Value)
+		Settings.Miscellaneous.ClaimVIPRewards = Value
+		while wait() and Settings.Miscellaneous.ClaimVIPRewards do
+			GameLibrary.Network.Invoke("Redeem VIP Rewards")
+		end
+	end,
+	Enabled = Settings.Miscellaneous.ClaimVIPRewards or false
+})
+
+for _, Connection in pairs(getconnections(GameLibrary.LocalPlayer.Idled)) do
+	if Connection.Disable then
+		Connection.Disable(Connection)
+	elseif Connection.Disconnect then
+		Connection.Disconnect(Connection)
+	end
+end
