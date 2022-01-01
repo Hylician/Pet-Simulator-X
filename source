@@ -139,7 +139,7 @@ end
 
 function ReturnChests()
     local ReturnTable = {}
-	local ListCoins = GameLibrary.Network.Invoke("Get Coins")
+    local ListCoins = GameLibrary.Network.Invoke("Get Coins")
     for Id, ChestData in pairs(ListCoins) do
         local Table = ChestData
         Table.Index = Id
@@ -240,7 +240,7 @@ end)
 local EggData = {}
 for _, Currency in pairs(CurrencyOrder) do
 	-- table.insert(EggData, "\t")
-	table.insert(EggData, "\255 " .. Currency .. " \255")
+	table.insert(EggData, Currency)
 	for _, Data in pairs(MyEggData) do
 		if Data.Currency == Currency then
 			table.insert(EggData, Data.Name)
