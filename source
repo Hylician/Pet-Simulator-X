@@ -1,24 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-getgenv().Settings = {
-	AutoFarm = {
-		FarmingEnabled = false,
-		FarmingType = "Normal",
-		FarmingArea = "",
-		FarmingSingleChest = ""
-	},
-	AutoHatch = {
-		OpeningEggs = false,
-		SelectedEgg = "",
-		TripleEggs = false
-	},
-	Miscellaneous = {
-		ClaimRankRewards = false,
-		ClaimVIPRewards = false,
-		Hoverboard = "Original"
-	}
-}
-
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
 local Frame = Library.Load({
 	Title = "PSX Hub",
