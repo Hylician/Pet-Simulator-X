@@ -16,7 +16,7 @@ local CurrencyOrder = {
 	"Tech Coins",
 	"Fantasy Coins",
 	"Coins",
-    "Diamonds",
+    	"Diamonds"
 }
 
 local Places = {
