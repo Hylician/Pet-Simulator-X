@@ -130,7 +130,7 @@ end
 function ReturnPets()
 	local ReturnTable = {}
 	local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
-	for _, PetData in ipairs(Save.Pets) do
+	for Index, PetData in ipairs(Save.Pets) do
 		if PetData.e then
 			table.insert(ReturnTable, PetData.uid)
 		end
@@ -154,8 +154,8 @@ function ReturnCoins(Area)
 end
 
 local AreaWorldTable = {}
-for _, v in pairs(ReplicatedStorage.Game.Coins:GetChildren()) do
-	for _, b in pairs(v:GetChildren()) do
+for Index, v in pairs(ReplicatedStorage.Game.Coins:GetChildren()) do
+	for Index, b in pairs(v:GetChildren()) do
 		table.insert(AreaWorldTable, b.Name)
 	end
 
@@ -168,7 +168,7 @@ function ReturnChests()
     for Id, ChestData in pairs(ListCoins) do
         local Table = ChestData
         Table.Index = Id
-        for _, bb in pairs(AreaWorldTable) do
+        for Index, bb in pairs(AreaWorldTable) do
             if string.find(ChestData.n, bb) then
                 local ExtraData = string.gsub(ChestData.n, bb .. " ", "")
                 if table.find(ChestList, ExtraData) then
@@ -263,11 +263,11 @@ table.sort(MyEggData, function(a, b)
 end)
 
 local EggData = {}
-for _, Currency in pairs(CurrencyOrder) do
-	-- table.insert(EggData, "\t")
+for Index, Currency in pairs(CurrencyOrder) do
+	table.insert(EggData, "\t")
 	table.insert(EggData, Currency)
-	for _, Data in pairs(MyEggData) do
-		if Data.Currency == Currency then
+	for Index, Data in pairs(MyEggData) do
+		if Data.Currency == Currency and not string.find("Golden", Data.Name) then
 			table.insert(EggData, Data.Name)
 		end
 	end
@@ -282,7 +282,7 @@ EggTab.Toggle({
 	Callback = function(Value)
 		Settings.AutoHatch.OpenEggs = Value
 		while task.wait() and Settings.AutoHatch.OpenEggs do
-			GameLibrary.Network.Invoke("Buy Egg", Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
+			GameLibrary.Network.Invoke("Buy Egg", (Settings.AutoHatch.GoldenEggs and "Golden " or "") .. Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
 		end
 	end,
 	Enabled = Settings.AutoHatch.OpenEggs or false
@@ -294,6 +294,14 @@ EggTab.Dropdown({
 		Settings.AutoHatch.SelectedEgg = Value
 	end,
 	Options = EggData
+})
+
+EggTab.Toggle({
+	Text = "Golden Eggs",
+	Callback = function(Value)
+		Settings.AutoHatch.GoldenEggs = Value
+	end,
+	Enabled = Settings.AutoHatch.GoldenEggs or false
 })
 
 EggTab.Toggle({
@@ -311,7 +319,7 @@ local MiscellaneousTab = Frame.New({
 MiscellaneousTab.Button({
 	Text = "Remove Open Animation",
 	Callback = function()
-		for _, v in pairs(getgc(true)) do
+		for Index, v in pairs(getgc(true)) do
 			if (typeof(v) == "table" and rawget(v, "OpenEgg")) then
 				v.OpenEgg = function()
 					return
@@ -326,7 +334,7 @@ MiscellaneousTab.Button({
 	Callback = function()
 		local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
 		Save.EquippedHoverboard = Settings.Miscellaneous.Hoverboard or "Original"
-		for _, v in pairs(getreg()) do
+		for Index, v in pairs(getreg()) do
 			if (typeof(v) == "table" and rawget(v, "Owns")) then
 				v.Owns = function()
 					return true
