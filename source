@@ -12,10 +12,11 @@ local Frame = Library.Load({
 local Framework = ReplicatedStorage:WaitForChild("Framework")
 local GameLibrary = require(Framework:WaitForChild("Library"))
 local CurrencyOrder = {
-	"Diamonds",
+	"Rainbow Coins",
 	"Tech Coins",
 	"Fantasy Coins",
-	"Coins"
+	"Coins",
+    "Diamonds",
 }
 
 local Places = {
@@ -50,6 +51,17 @@ local Places = {
 	["Alien Lab"] = {"Alien Lab", "Alien Lab FRONT"},
 	["Glitch"] = {"Glitch", "Glitch FRONT"},
 	["Hacker Portal"] = {"Hacker Portal", "Hacker Portal FRONT"}
+
+    -- Axolotl
+    ["Axolotl Ocean"] = {"Axolotl Ocean", "Axolotl Ocean FRONT"},
+    ["Axolotl Deep Ocean"] = {"Axolotl Deep Ocean", "Axolotl Deep Ocean FRONT"},
+    ["Axolotl Cave"] = {"Axolotl Cave", "Axolotl Cave FRONT"},
+
+    -- Pixel
+    ["Pixel Forest"] = {"Pixel Forest", "Pixel Forest FRONT"},
+    ["Pixel Kyoto"] = {"Pixel Kyoto", "Pixel Kyoto FRONT"},
+    ["Pixel Alps"] = {"Pixel Alps", "Pixel Alps FRONT"},
+    ["Pixel Vault"] = {"Pixel Vault", "Pixel Vault FRONT"}
 }
 
 local AreaList = {
@@ -64,6 +76,12 @@ local AreaList = {
 
 	-- Tech
 	"Ice Tech", "Tech City", "Dark Tech", "Steampunk", "Alien Lab", "Alien Forest", "Glitch", "Hacker Portal"
+
+    -- Axolotl
+	"Axolotl Ocean", "Axolotl Deep Ocean", "Axolotl Cave",
+
+    -- Pixel
+	"Pixel Forest", "Pixel Kyoto", "Pixel Alps", "Pixel Vault"
 }
 
 local ChestList = {
@@ -78,6 +96,12 @@ local ChestList = {
 
 	-- Tech
 	"Giant Tech Chest", "Giant Steampunk Chest", "Giant Alien Chest",  "Giant Hacker Chest"
+
+    -- Axolotl
+    "Giant Ocean Chest"
+
+    -- Pixel
+    "Giant Pixel Chest"
 }
 
 local Folder = GameLibrary.Things
