@@ -267,7 +267,7 @@ for Index, Currency in pairs(CurrencyOrder) do
 	table.insert(EggData, "\t")
 	table.insert(EggData, Currency)
 	for Index, Data in pairs(MyEggData) do
-		if Data.Currency == Currency and not string.find("Golden", Data.Name) then
+		if not string.find("Golden ", Data.Name) and Data.Currency == Currency then
 			table.insert(EggData, Data.Name)
 		end
 	end
