@@ -16,7 +16,7 @@ local CurrencyOrder = {
 	"Tech Coins",
 	"Fantasy Coins",
 	"Coins",
-    	"Diamonds"
+    "Diamonds",
 }
 
 local Places = {
@@ -264,13 +264,13 @@ end)
 
 local EggData = {}
 for Index, Currency in pairs(CurrencyOrder) do
-	table.insert(EggData, "\t")
-	table.insert(EggData, Currency)
 	for Index, Data in pairs(MyEggData) do
-		if not string.find("Golden ", Data.Name) and Data.Currency == Currency then
+		if not string.find(Data.Name, "Golden ") and Data.Currency == Currency then
 			table.insert(EggData, Data.Name)
 		end
 	end
+
+    table.insert(EggData, "\t")
 end
 
 local EggTab = Frame.New({
