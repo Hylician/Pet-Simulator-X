@@ -16,7 +16,7 @@ local CurrencyOrder = {
 	"Tech Coins",
 	"Fantasy Coins",
 	"Coins",
-    "Diamonds",
+	"Diamonds",
 }
 
 local Places = {
@@ -97,11 +97,11 @@ local ChestList = {
 	-- Tech
 	"Giant Tech Chest", "Giant Steampunk Chest", "Giant Alien Chest",  "Giant Hacker Chest",
 
-    	-- Axolotl
-    	"Giant Ocean Chest",
+    -- Axolotl
+    "Giant Ocean Chest",
 
-    	-- Pixel
-    	"Giant Pixel Chest"
+    -- Pixel
+    "Giant Pixel Chest"
 }
 
 local Folder = GameLibrary.Things
@@ -190,11 +190,13 @@ FarmTab.Toggle({
 	Text = "AutoFarm",
 	Callback = function(Value)
 		Settings.AutoFarm.FarmingEnabled = Value
+		local CurrentFarmingPets = {}
 		while task.wait() and Settings.AutoFarm.FarmingEnabled do
+			local ReturnedPets = ReturnPets()
 			if Settings.AutoFarm.FarmingType == "Normal" then
-				for _, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
+				for Index, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
 					if Settings.AutoFarm.FarmingEnabled and Coins:FindFirstChild(CoinData.Index) then
-						for _, PetId in pairs(ReturnPets()) do
+						for Index, PetId in pairs(ReturnPets()) do
 							coroutine.wrap(function()
 								FarmCoin(CoinData.Index, PetId)
 							end)()
@@ -206,9 +208,9 @@ FarmTab.Toggle({
 					end
 				end
 			elseif Settings.AutoFarm.FarmingType == "Chest" then
-				for _, ChestData in pairs(ReturnChests()) do
+				for Index, ChestData in pairs(ReturnChests()) do
 					if Settings.AutoFarm.FarmingSingleChest == "All" or ChestData.n == Settings.AutoFarm.FarmingSingleChest then
-						for _, PetId in pairs(ReturnPets()) do
+						for Index, PetId in pairs(ReturnPets()) do
 							coroutine.wrap(function()
 								FarmCoin(ChestData.Index, PetId)
 							end)()
@@ -217,6 +219,25 @@ FarmTab.Toggle({
 						repeat
 							task.wait()
 						until not Coins:FindFirstChild(ChestData.Index) or #Coins[ChestData.Index].Pets:GetChildren() < 1
+					end
+				end
+			elseif Settings.AutoFarm.FarmingType == "Multi Target" then
+				local CoinData = ReturnCoins(Settings.AutoFarm.FarmingArea)
+				for i = 1, #CoinData do
+					if i % #ReturnedPets == #ReturnedPets - 1 then
+						wait()
+					end
+
+					if not CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] then
+						wait(0.1)
+						spawn(function()
+							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] = "Farming"
+							FarmCoin(CoinData[i].Index, ReturnedPets[i%#ReturnedPets+1])
+							repeat
+								task.wait()
+							until not Coins:FindFirstChild(CoinData[i].Index) or #Coins:FindFirstChild(CoinData[i].Index).Pets:GetChildren() < 1
+							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] = nil
+						end)
 					end
 				end
 			end
@@ -230,7 +251,7 @@ FarmTab.Dropdown({
 	Callback = function(Value)
 		Settings.AutoFarm.FarmingType = Value
 	end,
-	Options = {"Normal", "Chest"}
+	Options = {"Normal", "Multi Target", "Chest"}
 })
 
 FarmTab.Dropdown({
@@ -258,8 +279,8 @@ for EggName, EggData in pairs(GameLibrary.Directory.Eggs) do
 	})
 end
 
-table.sort(MyEggData, function(a, b)
-	return a.Cost < b.Cost
+table.sort(MyEggData, function(Table1, Table2)
+	return Table1.Cost < Table2.Cost
 end)
 
 local EggData = {}
@@ -348,9 +369,10 @@ MiscellaneousTab.Toggle({
 	Text = "Claim Rewards",
 	Callback = function(Value)
 		Settings.Miscellaneous.ClaimRewards = Value
-		while wait(5) and Settings.Miscellaneous.ClaimRewards do
+		while Settings.Miscellaneous.ClaimRewards do
 			GameLibrary.Network.Invoke("Redeem Rank Rewards")
 			GameLibrary.Network.Invoke("Redeem VIP Rewards")
+			wait(10)
 		end
 	end,
 	Enabled = Settings.Miscellaneous.ClaimRewards or false
