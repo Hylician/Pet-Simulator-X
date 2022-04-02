@@ -123,7 +123,7 @@ end)
 
 function FarmCoin(CoinId, PetId)
 	-- GameLibrary.Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
-	GameLibrary.Network.Invoke("Join Coin", CoinId, {PetId})
+	GameLibrary.Network.Invoke("Join Coin", CoinId, PetId)
 	GameLibrary.Network.Fire("Farm Coin", CoinId, PetId)
 end
 
