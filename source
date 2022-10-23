@@ -12,8 +12,8 @@ local Frame = Library.Load({
 local Framework = ReplicatedStorage:WaitForChild("Framework")
 local GameLibrary = require(Framework:WaitForChild("Library"))
 local CurrencyOrder = {
+	"Halloween Candy",
 	"Rainbow Coins",
-	"Candy",
 	"Tech Coins",
 	"Fantasy Coins",
 	"Coins",
