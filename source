@@ -13,6 +13,7 @@ local Framework = ReplicatedStorage:WaitForChild("Framework")
 local GameLibrary = require(Framework:WaitForChild("Library"))
 local CurrencyOrder = {
 	"Rainbow Coins",
+	"Candy",
 	"Tech Coins",
 	"Fantasy Coins",
 	"Coins",
