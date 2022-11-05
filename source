@@ -53,16 +53,22 @@ local Places = {
 	["Glitch"] = {"Glitch", "Glitch FRONT"},
 	["Hacker Portal"] = {"Hacker Portal", "Hacker Portal FRONT"},
 
-    	-- Axolotl
-    	["Axolotl Ocean"] = {"Axolotl Ocean", "Axolotl Ocean FRONT"},
-    	["Axolotl Deep Ocean"] = {"Axolotl Deep Ocean", "Axolotl Deep Ocean FRONT"},
-    	["Axolotl Cave"] = {"Axolotl Cave", "Axolotl Cave FRONT"},
+	-- Axolotl
+	["Axolotl Ocean"] = {"Axolotl Ocean", "Axolotl Ocean FRONT"},
+	["Axolotl Deep Ocean"] = {"Axolotl Deep Ocean", "Axolotl Deep Ocean FRONT"},
+	["Axolotl Cave"] = {"Axolotl Cave", "Axolotl Cave FRONT"},
 
-   	-- Pixel
-   	["Pixel Forest"] = {"Pixel Forest", "Pixel Forest FRONT"},
-    	["Pixel Kyoto"] = {"Pixel Kyoto", "Pixel Kyoto FRONT"},
-    	["Pixel Alps"] = {"Pixel Alps", "Pixel Alps FRONT"},
-    	["Pixel Vault"] = {"Pixel Vault", "Pixel Vault FRONT"}
+	-- Pixel
+	["Pixel Forest"] = {"Pixel Forest", "Pixel Forest FRONT"},
+	["Pixel Kyoto"] = {"Pixel Kyoto", "Pixel Kyoto FRONT"},
+	["Pixel Alps"] = {"Pixel Alps", "Pixel Alps FRONT"},
+	["Pixel Vault"] = {"Pixel Vault", "Pixel Vault FRONT"},
+
+	-- Cat
+	["Cat Paradise"] = {"Cat Paradise", "Cat Paradise FRONT"},
+	["Cat Backyard"] = {"Cat Backyard", "Cat Backyard FRONT"},
+	["Cat Taiga"] = {"Cat Taiga", "Cat Taiga FRONT"},
+	["Cat Kingdom"] = {"Cat Kingdom", "Cat Kingdom FRONT"}
 }
 
 local AreaList = {
@@ -78,11 +84,14 @@ local AreaList = {
 	-- Tech
 	"Ice Tech", "Tech City", "Dark Tech", "Steampunk", "Alien Lab", "Alien Forest", "Glitch", "Hacker Portal",
 
-    	-- Axolotl
+	-- Axolotl
 	"Axolotl Ocean", "Axolotl Deep Ocean", "Axolotl Cave",
 
-    	-- Pixel
-	"Pixel Forest", "Pixel Kyoto", "Pixel Alps", "Pixel Vault"
+	-- Pixel
+	"Pixel Forest", "Pixel Kyoto", "Pixel Alps", "Pixel Vault",
+
+	-- Cat
+	"Cat Paradise", "Cat Backyard", "Cat Taiga", "Cat Kingdom"
 }
 
 local ChestList = {
@@ -102,7 +111,10 @@ local ChestList = {
 	"Giant Ocean Chest",
 
 	-- Pixel
-	"Giant Pixel Chest"
+	"Giant Pixel Chest",
+
+	-- Cat
+	"Giant Cat Chest"
 }
 
 local Folder = GameLibrary.Things
