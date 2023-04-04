@@ -10,9 +10,23 @@ local Frame = Library.Load({
 })
 
 local Framework = ReplicatedStorage:WaitForChild("Framework")
-local GameLibrary = require(Framework:WaitForChild("Library"))
+local _L = require(Framework:WaitForChild("Library"))
+
+local EventNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Fire, 2)
+local FunctionNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Invoke, 2)
+local Network = {
+    ["Fire"] = function(EventName, ...)
+        local Event = EventNetwork(EventName)
+        Event:FireServer(...)
+    end,
+    ["Invoke"] = function(FunctionName, ...)
+        local Function = FunctionNetwork(FunctionName)
+        Function:InvokeServer(...)
+    end
+}
+
 local CurrencyOrder = {
-	"Halloween Candy",
+	"Doodle Coins",
 	"Rainbow Coins",
 	"Tech Coins",
 	"Fantasy Coins",
@@ -117,7 +131,7 @@ local ChestList = {
 	"Giant Cat Chest"
 }
 
-local Folder = GameLibrary.Things
+local Folder = _L.Things
 local Coins = Folder:WaitForChild("Coins")
 local Lootbags = Folder:WaitForChild("Lootbags")
 local Orbs = Folder:WaitForChild("Orbs")
@@ -126,23 +140,23 @@ Lootbags.ChildAdded:Connect(function(Lootbag)
 		task.wait()
 	until Lootbag:GetAttribute("ReadyForCollection", true)
 	Lootbag:SetAttribute("Collected", true)
-	GameLibrary.Network.Fire("Collect Lootbag", Lootbag.Name, Lootbag.CFrame.Position)
+	Network.Fire("Collect Lootbag", Lootbag.Name, Lootbag.CFrame.Position)
 	Lootbag:Destroy()
 end)
 
 Orbs.ChildAdded:Connect(function(Orb)
-	GameLibrary.Network.Fire("Claim Orbs", {Orb.Name})
+	Network.Fire("Claim Orbs", {Orb.Name})
 end)
 
 function FarmCoin(CoinId, PetId)
-	-- GameLibrary.Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
-	GameLibrary.Network.Invoke("Join Coin", CoinId, {PetId})
-	GameLibrary.Network.Fire("Farm Coin", CoinId, PetId)
+	-- Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
+	Network.Invoke("Join Coin", CoinId, {PetId})
+	Network.Fire("Farm Coin", CoinId, PetId)
 end
 
 function ReturnPets()
 	local ReturnTable = {}
-	local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
+	local Save = _L.Save.Get(_L.LocalPlayer, true)
 	for Index, PetData in ipairs(Save.Pets) do
 		if PetData.e then
 			table.insert(ReturnTable, PetData.uid)
@@ -154,7 +168,7 @@ end
 
 function ReturnCoins(Area)
 	local ReturnTable = {}
-	local ListCoins = GameLibrary.Network.Invoke("Get Coins")
+	local ListCoins = Network.Invoke("Get Coins")
 	for Id, CoinData in pairs(ListCoins) do
 		if Area == "All" or table.find(Places[Area], CoinData.a) then
 			local Table = CoinData
@@ -177,7 +191,7 @@ end
 
 function ReturnChests()
     local ReturnTable = {}
-    local ListCoins = GameLibrary.Network.Invoke("Get Coins")
+    local ListCoins = Network.Invoke("Get Coins")
     for Id, ChestData in pairs(ListCoins) do
         local Table = ChestData
         Table.Index = Id
@@ -284,7 +298,7 @@ FarmTab.Dropdown({
 })
 
 local MyEggData = {}
-for EggName, EggData in pairs(GameLibrary.Directory.Eggs) do
+for EggName, EggData in pairs(_L.Directory.Eggs) do
 	table.insert(MyEggData, {
 		Name = EggName,
 		Currency = EggData.currency,
@@ -316,7 +330,7 @@ EggTab.Toggle({
 	Callback = function(Value)
 		Settings.AutoHatch.OpenEggs = Value
 		while task.wait() and Settings.AutoHatch.OpenEggs do
-			GameLibrary.Network.Invoke("Buy Egg", (Settings.AutoHatch.GoldenEggs and "Golden " or "") .. Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
+			Network.Invoke("Buy Egg", (Settings.AutoHatch.GoldenEggs and "Golden " or "") .. Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
 		end
 	end,
 	Enabled = Settings.AutoHatch.OpenEggs or false
@@ -353,9 +367,9 @@ local MiscellaneousTab = Frame.New({
 MiscellaneousTab.Button({
 	Text = "Remove Open Animation",
 	Callback = function()
-		for Index, v in pairs(getgc(true)) do
-			if (typeof(v) == "table" and rawget(v, "OpenEgg")) then
-				v.OpenEgg = function()
+		for Index, GlobalConnection in pairs(getgc(true)) do
+			if (typeof(GlobalConnection) == "table" and rawget(GlobalConnection, "OpenEgg")) then
+				GlobalConnection.OpenEgg = function()
 					return
 				end
 			end
@@ -366,11 +380,11 @@ MiscellaneousTab.Button({
 MiscellaneousTab.Button({
 	Text = "Free Passes",
 	Callback = function()
-		local Save = GameLibrary.Save.Get(GameLibrary.LocalPlayer, true)
+		local Save = _L.Save.Get(_L.LocalPlayer, true)
 		Save.EquippedHoverboard = Settings.Miscellaneous.Hoverboard or "Original"
-		for Index, v in pairs(getreg()) do
-			if (typeof(v) == "table" and rawget(v, "Owns")) then
-				v.Owns = function()
+		for Index, Connection in pairs(getreg()) do
+			if (typeof(Connection) == "table" and rawget(Connection, "Owns")) then
+				Connection.Owns = function()
 					return true
 				end
 			end
@@ -383,15 +397,15 @@ MiscellaneousTab.Toggle({
 	Callback = function(Value)
 		Settings.Miscellaneous.ClaimRewards = Value
 		while Settings.Miscellaneous.ClaimRewards do
-			GameLibrary.Network.Invoke("Redeem Rank Rewards")
-			GameLibrary.Network.Invoke("Redeem VIP Rewards")
-			wait(10)
+			Network.Invoke("Redeem Rank Rewards")
+			Network.Invoke("Redeem VIP Rewards")
+			task.wait(10)
 		end
 	end,
 	Enabled = Settings.Miscellaneous.ClaimRewards or false
 })
 
-for Index, Connection in pairs(getconnections(GameLibrary.LocalPlayer.Idled)) do
+for Index, Connection in pairs(getconnections(_L.LocalPlayer.Idled)) do
 	if Connection.Disable then
 		Connection.Disable(Connection)
 	elseif Connection.Disconnect then
