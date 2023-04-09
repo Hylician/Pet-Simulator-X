@@ -26,6 +26,7 @@ local Network = {
 }
 
 local CurrencyOrder = {
+	"Easter Coins",
 	"Doodle Coins",
 	"Rainbow Coins",
 	"Tech Coins",
