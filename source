@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/MaterialLua/master/Module.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hylician/MaterialLua/master/Module.lua"))()
 local Frame = Library.Load({
 	Title = "PSX Hub",
 	Style = 1,
@@ -21,7 +21,7 @@ local Network = {
     end,
     ["Invoke"] = function(FunctionName, ...)
         local Function = FunctionNetwork(FunctionName)
-        Function:InvokeServer(...)
+        return Function:InvokeServer(...)
     end
 }
 
@@ -82,7 +82,23 @@ local Places = {
 	["Cat Paradise"] = {"Cat Paradise", "Cat Paradise FRONT"},
 	["Cat Backyard"] = {"Cat Backyard", "Cat Backyard FRONT"},
 	["Cat Taiga"] = {"Cat Taiga", "Cat Taiga FRONT"},
-	["Cat Kingdom"] = {"Cat Kingdom", "Cat Kingdom FRONT"}
+	["Cat Kingdom"] = {"Cat Kingdom", "Cat Kingdom FRONT"},
+
+	-- Doodle
+	["Doodle Meadow"] = {"Doodle Meadow", "Doodle Meadow FRONT"},
+	["Doodle Peaks"] = {"Doodle Peaks", "Doodle Peaks FRONT"},
+	["Doodle Farm"] = {"Doodle Farm", "Doodle Farm FRONT"},
+	["Doodle Oasis"] = {"Doodle Oasis", "Doodle Oasis FRONT"},
+	["Doodle Woodlands"] = {"Doodle Woodlands", "Doodle Woodlands FRONT"},
+	["Doodle Safari"] = {"Doodle Safari", "Doodle Safari FRONT"},
+	["Doodle Fairyland"] = {"Doodle Fairyland", "Doodle Fairyland FRONT"},
+	["Doodle Cave"] = {"Doodle Cave", "Doodle Cave FRONT"},
+
+	-- Kawaii
+	["Kawaii Tokyo"] = {"Kawaii Tokyo", "Kawaii Tokyo FRONT"},
+	["Kawaii Village"] = {"Kawaii Village", "Kawaii Village FRONT"},
+	["Kawaii Candyland"] = {"Kawaii Candyland", "Kawaii Candyland FRONT"},
+	["Kawaii Temple"] = {"Kawaii Temple", "Kawaii Temple FRONT"}
 }
 
 local AreaList = {
@@ -105,30 +121,13 @@ local AreaList = {
 	"Pixel Forest", "Pixel Kyoto", "Pixel Alps", "Pixel Vault",
 
 	-- Cat
-	"Cat Paradise", "Cat Backyard", "Cat Taiga", "Cat Kingdom"
-}
+	"Cat Paradise", "Cat Backyard", "Cat Taiga", "Cat Kingdom",
+	
+	-- Doodle
+	"Doodle Meadow", "Doodle Peaks", "Doodle Farm", "Doodle Oasis", "Doodle Woodlands", "Doodle Safari", "Doodle Fairyland", "Doodle Cave",
 
-local ChestList = {
-	-- Miscellaneous
-	"All",
-
-	-- Spawn
-	"Magma Chest",
-
-	-- Fantasy
-	"Enchanted Chest", "Hell Chest", "Haunted Chest", "Angel Chest", "Grand Heaven Chest",
-
-	-- Tech
-	"Giant Tech Chest", "Giant Steampunk Chest", "Giant Alien Chest",  "Giant Hacker Chest",
-
-	-- Axolotl
-	"Giant Ocean Chest",
-
-	-- Pixel
-	"Giant Pixel Chest",
-
-	-- Cat
-	"Giant Cat Chest"
+	-- Kawaii
+	"Kawaii Tokyo", "Kawaii Village", "Kawaii Candyland", "Kawaii Temple",
 }
 
 local Folder = _L.Things
@@ -157,9 +156,9 @@ end
 function ReturnPets()
 	local ReturnTable = {}
 	local Save = _L.Save.Get(_L.LocalPlayer, true)
-	for Index, PetData in ipairs(Save.Pets) do
-		if PetData.e then
-			table.insert(ReturnTable, PetData.uid)
+	for PetUID, Equipped in pairs(Save.PetsEquipped) do
+		if Equipped then
+			table.insert(ReturnTable, PetUID)
 		end
 	end
 
@@ -180,35 +179,6 @@ function ReturnCoins(Area)
 	return ReturnTable
 end
 
-local AreaWorldTable = {}
-for Index, v in pairs(ReplicatedStorage.Game.Coins:GetChildren()) do
-	for Index, b in pairs(v:GetChildren()) do
-		table.insert(AreaWorldTable, b.Name)
-	end
-
-	table.insert(AreaWorldTable, v.Name)
-end
-
-function ReturnChests()
-    local ReturnTable = {}
-    local ListCoins = Network.Invoke("Get Coins")
-    for Id, ChestData in pairs(ListCoins) do
-        local Table = ChestData
-        Table.Index = Id
-        for Index, bb in pairs(AreaWorldTable) do
-            if string.find(ChestData.n, bb) then
-                local ExtraData = string.gsub(ChestData.n, bb .. " ", "")
-                if table.find(ChestList, ExtraData) then
-                    Table.n = ExtraData
-                    table.insert(ReturnTable, Table)
-                end
-            end
-        end
-    end
-
-    return ReturnTable
-end
-
 local FarmTab = Frame.New({
 	Title = "Farming"
 })
@@ -218,8 +188,11 @@ FarmTab.Toggle({
 	Callback = function(Value)
 		Settings.AutoFarm.FarmingEnabled = Value
 		local CurrentFarmingPets = {}
-		while task.wait() and Settings.AutoFarm.FarmingEnabled do
-			local ReturnedPets = ReturnPets()
+		while task.wait() do
+		    if not Settings.AutoFarm.FarmingEnabled then
+		        break
+		    end
+
 			if Settings.AutoFarm.FarmingType == "Normal" then
 				for Index, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
 					if Settings.AutoFarm.FarmingEnabled and Coins:FindFirstChild(CoinData.Index) then
@@ -234,30 +207,17 @@ FarmTab.Toggle({
 						until not Coins:FindFirstChild(CoinData.Index)
 					end
 				end
-			elseif Settings.AutoFarm.FarmingType == "Chest" then
-				for Index, ChestData in pairs(ReturnChests()) do
-					if Settings.AutoFarm.FarmingSingleChest == "All" or ChestData.n == Settings.AutoFarm.FarmingSingleChest then
-						for Index, PetId in pairs(ReturnPets()) do
-							coroutine.wrap(function()
-								FarmCoin(ChestData.Index, PetId)
-							end)()
-						end
-
-						repeat
-							task.wait()
-						until not Coins:FindFirstChild(ChestData.Index) or #Coins[ChestData.Index].Pets:GetChildren() < 1
-					end
-				end
 			elseif Settings.AutoFarm.FarmingType == "Multi Target" then
+			    local ReturnedPets = ReturnPets()
 				local CoinData = ReturnCoins(Settings.AutoFarm.FarmingArea)
 				for i = 1, #CoinData do
 					if i % #ReturnedPets == #ReturnedPets - 1 then
-						wait()
+						task.wait()
 					end
 
 					if not CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] then
-						wait(0.1)
-						spawn(function()
+						task.wait(0.1)
+						task.spawn(function()
 							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] = "Farming"
 							FarmCoin(CoinData[i].Index, ReturnedPets[i%#ReturnedPets+1])
 							repeat
@@ -278,15 +238,7 @@ FarmTab.Dropdown({
 	Callback = function(Value)
 		Settings.AutoFarm.FarmingType = Value
 	end,
-	Options = {"Normal", "Multi Target", "Chest"}
-})
-
-FarmTab.Dropdown({
-	Text = "Chest",
-	Callback = function(Value)
-		Settings.AutoFarm.FarmingSingleChest = Value
-	end,
-	Options = ChestList
+	Options = {"Normal", "Multi Target"}
 })
 
 FarmTab.Dropdown({
@@ -318,7 +270,9 @@ for Index, Currency in pairs(CurrencyOrder) do
 		end
 	end
 
-    table.insert(EggData, "\t")
+    if Index < #CurrencyOrder then
+        table.insert(EggData, "\t")
+    end
 end
 
 local EggTab = Frame.New({
@@ -330,7 +284,7 @@ EggTab.Toggle({
 	Callback = function(Value)
 		Settings.AutoHatch.OpenEggs = Value
 		while task.wait() and Settings.AutoHatch.OpenEggs do
-			Network.Invoke("Buy Egg", (Settings.AutoHatch.GoldenEggs and "Golden " or "") .. Settings.AutoHatch.SelectedEgg, Settings.AutoHatch.TripleEggs)
+			Network.Invoke("Buy Egg", string.format((Settings.AutoHatch.GoldenEggs and "Golden %s" or "%s"), Settings.AutoHatch.SelectedEgg), Settings.AutoHatch.TripleEggs, Settings.AutoHatch.OctupleEggs)
 		end
 	end,
 	Enabled = Settings.AutoHatch.OpenEggs or false
@@ -359,6 +313,99 @@ EggTab.Toggle({
 	end,
 	Enabled = Settings.AutoHatch.TripleEggs or false
 })
+
+EggTab.Toggle({
+	Text = "Octuple Eggs",
+	Callback = function(Value)
+		Settings.AutoHatch.OctupleEggs = Value
+	end,
+	Enabled = Settings.AutoHatch.OctupleEggs or false
+})
+
+local AutoTab = Frame.New({
+	Title = "Automation"
+})
+
+local Goldies = AutoTab.Slider({
+	Text = "Gold Pet Count",
+    Min = 1,
+    Max = 6,
+    Def = 1
+})
+
+local Rainbowies = AutoTab.Slider({
+	Text = "Rainbow Pet Count",
+    Min = 1,
+    Max = 6,
+    Def = 1
+})
+
+for i = 1, 3 do
+    local Flag = ((i == 1 and "Use Golden Machine") or (i == 2 and "Use Rainbow Machine") or (i == 3 and "Convert To Dark Matter"))
+    AutoTab.Toggle({
+        Text = ((i == 1 and "Auto Gold Convert") or (i == 2 and "Auto Rainbow Convert") or (i == 3 and "Auto Dark Matter Convert")),
+        Callback = function(Value)
+            Settings.Automation[Flag] = Value
+            while task.wait(0.1) do
+                if not Settings.Automation[Flag] then
+                    break
+                end
+
+                local Save = _L.Save.Get(_L.LocalPlayer, true)
+                local Pets, PetData, SoftOverride, Types = Save.Pets, _L.Directory.Pets, nil, {}
+                for Index, Pet in pairs(Save.Pets) do
+                    if Pet and not Pet.dm and (i == 2 or not Pet.g) and (i == 3 or not Pet.r) then
+                        local PetID = Pet.id
+						local PetData = PetData[PetID]
+						if PetData and not PetData.isPremium and (PetData.rarity ~= "Exclusive") then
+							local PetUID = Pet.uid
+							if i == 3 then
+								SoftOverride = PetUID
+								break
+							end
+
+							local Type = Types[PetID] or {ID = PetID}
+							Types[PetID] = Type
+							Type[1 + #Type] = PetUID
+						end
+                    end
+                end
+
+                local Six = tonumber(i == 1 and Goldies:GetValue()) or (i == 2 and Rainbowies:GetValue()) or 6
+				if SoftOverride or next(Types) then
+					local Candidates = {}
+					if SoftOverride then
+						Candidates[1] = {SoftOverride}
+					else
+						for k, v in next, Types do
+							if v and (#v >= Six) then
+							    v.ID = nil
+								table.insert(Candidates, v)
+							else
+								Types[k] = (table.clear(v) and nil) or nil
+							end
+						end
+					end
+
+					if #Candidates > 0 then
+						if not i == 3 then
+							table.sort(Candidates, function(a, b)
+                                return #a > #b
+                            end)
+						end
+
+						Candidates = {table.unpack(Candidates[1], 1, Six)}
+						if Settings.Automation[Flag] and (#Candidates == ((i == 3 and 1) or Six)) then
+							Network.Invoke(Flag, Candidates)
+							task.wait(0.5)
+						end
+					end
+				end
+    		end
+    	end,
+    	Enabled = Settings.Automation[Flag] or false
+    })
+end
 
 local MiscellaneousTab = Frame.New({
 	Title = "Miscellaneous"
@@ -399,6 +446,7 @@ MiscellaneousTab.Toggle({
 		while Settings.Miscellaneous.ClaimRewards do
 			Network.Invoke("Redeem Rank Rewards")
 			Network.Invoke("Redeem VIP Rewards")
+			Network.Invoke("Daycare: Claim")
 			task.wait(10)
 		end
 	end,
