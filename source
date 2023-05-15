@@ -99,7 +99,10 @@ local Places = {
 	["Kawaii Tokyo"] = {"Kawaii Tokyo", "Kawaii Tokyo FRONT"},
 	["Kawaii Village"] = {"Kawaii Village", "Kawaii Village FRONT"},
 	["Kawaii Candyland"] = {"Kawaii Candyland", "Kawaii Candyland FRONT"},
-	["Kawaii Temple"] = {"Kawaii Temple", "Kawaii Temple FRONT"}
+	["Kawaii Temple"] = {"Kawaii Temple", "Kawaii Temple FRONT"},
+
+	-- EVENT
+	["Lucky Block Area"] = {"Lucky Block Area", "Lucky Block Area FRONT"}
 }
 
 local AreaList = {
