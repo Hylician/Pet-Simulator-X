@@ -12,26 +12,17 @@ local Frame = Library.Load({
 local Framework = ReplicatedStorage:WaitForChild("Framework")
 local _L = require(Framework:WaitForChild("Library"))
 
-debug.setupvalue(_L.Network.Invoke, 1, function()
-    return true
-end)
-
-debug.setupvalue(_L.Network.Fire, 1, function()
-    return true
-end)
-
---[[local EventNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Fire, 2)
+local EventNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Fire, 2)
 local FunctionNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Invoke, 2)
-local Network = {
-    ["Fire"] = function(EventName, ...)
-        local Event = EventNetwork(EventName)
-        Event:FireServer(...)
-    end,
-    ["Invoke"] = function(FunctionName, ...)
-        local Function = FunctionNetwork(FunctionName)
-        return Function:InvokeServer(...)
-    end
-}]]
+function _L.Network.Fire(EventName, ...)
+	local Event = EventNetwork(EventName)
+	Event:FireServer(...)
+end
+
+function _L.Network.Invoke(FunctionName, ...)
+	local Function = FunctionNetwork(FunctionName)
+	return Function:InvokeServer(...)
+end
 
 local CurrencyOrder = {
 	"Lucky Coins",
