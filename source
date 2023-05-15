@@ -12,7 +12,15 @@ local Frame = Library.Load({
 local Framework = ReplicatedStorage:WaitForChild("Framework")
 local _L = require(Framework:WaitForChild("Library"))
 
-local EventNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Fire, 2)
+debug.setupvalue(_L.Network.Invoke, 1, function()
+    return true
+end)
+
+debug.setupvalue(_L.Network.Fire, 1, function()
+    return true
+end)
+
+--[[local EventNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Fire, 2)
 local FunctionNetwork = getupvalue(getupvalue(getrawmetatable(_L.Network).__index, 1).Invoke, 2)
 local Network = {
     ["Fire"] = function(EventName, ...)
@@ -23,7 +31,7 @@ local Network = {
         local Function = FunctionNetwork(FunctionName)
         return Function:InvokeServer(...)
     end
-}
+}]]
 
 local CurrencyOrder = {
 	"Lucky Coins",
@@ -146,35 +154,27 @@ Lootbags.ChildAdded:Connect(function(Lootbag)
 		task.wait()
 	until Lootbag:GetAttribute("ReadyForCollection", true)
 	Lootbag:SetAttribute("Collected", true)
-	Network.Fire("Collect Lootbag", Lootbag.Name, Lootbag.CFrame.Position)
+	_L.Network.Fire("Collect Lootbag", Lootbag.Name, Lootbag.CFrame.Position)
 	Lootbag:Destroy()
 end)
 
 Orbs.ChildAdded:Connect(function(Orb)
-	Network.Fire("Claim Orbs", {Orb.Name})
+	_L.Network.Fire("Claim Orbs", {Orb.Name})
 end)
 
 function FarmCoin(CoinId, PetId)
-	-- Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
-	Network.Invoke("Join Coin", CoinId, {PetId})
-	Network.Fire("Farm Coin", CoinId, PetId)
+	-- _L.Network.Fire("Change Pet Target", PetId, "Coin", CoinId)
+	_L.Network.Invoke("Join Coin", CoinId, {PetId})
+	_L.Network.Fire("Farm Coin", CoinId, PetId)
 end
 
 function ReturnPets()
-	local ReturnTable = {}
-	local Save = _L.Save.Get(_L.LocalPlayer, true)
-	for PetUID, Equipped in pairs(Save.PetsEquipped) do
-		if Equipped then
-			table.insert(ReturnTable, PetUID)
-		end
-	end
-
-	return ReturnTable
+    return _L.PetCmds.GetEquipped()
 end
 
 function ReturnCoins(Area)
 	local ReturnTable = {}
-	local ListCoins = Network.Invoke("Get Coins")
+	local ListCoins = _L.Network.Invoke("Get Coins")
 	for Id, CoinData in pairs(ListCoins) do
 		if Area == "All" or table.find(Places[Area], CoinData.a) then
 			local Table = CoinData
@@ -203,9 +203,9 @@ FarmTab.Toggle({
 			if Settings.AutoFarm.FarmingType == "Normal" then
 				for Index, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
 					if Settings.AutoFarm.FarmingEnabled and Coins:FindFirstChild(CoinData.Index) then
-						for Index, PetId in pairs(ReturnPets()) do
+						for Index, PetData in pairs(ReturnPets()) do
 							coroutine.wrap(function()
-								FarmCoin(CoinData.Index, PetId)
+								FarmCoin(CoinData.Index, PetData.uid)
 							end)()
 						end
 
@@ -222,15 +222,15 @@ FarmTab.Toggle({
 						task.wait()
 					end
 
-					if not CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] then
+					if not CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1].uid] then
 						task.wait(0.1)
 						task.spawn(function()
-							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] = "Farming"
-							FarmCoin(CoinData[i].Index, ReturnedPets[i%#ReturnedPets+1])
+							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1].uid] = "Farming"
+							FarmCoin(CoinData[i].Index, ReturnedPets[i%#ReturnedPets+1].uid)
 							repeat
 								task.wait()
 							until not Coins:FindFirstChild(CoinData[i].Index) or #Coins:FindFirstChild(CoinData[i].Index).Pets:GetChildren() < 1
-							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1]] = nil
+							CurrentFarmingPets[ReturnedPets[i % #ReturnedPets + 1].uid] = nil
 						end)
 					end
 				end
@@ -291,7 +291,7 @@ EggTab.Toggle({
 	Callback = function(Value)
 		Settings.AutoHatch.OpenEggs = Value
 		while task.wait() and Settings.AutoHatch.OpenEggs do
-			Network.Invoke("Buy Egg", string.format((Settings.AutoHatch.GoldenEggs and "Golden %s" or "%s"), Settings.AutoHatch.SelectedEgg), Settings.AutoHatch.TripleEggs, Settings.AutoHatch.OctupleEggs)
+			_L.Network.Invoke("Buy Egg", string.format((Settings.AutoHatch.GoldenEggs and "Golden %s" or "%s"), Settings.AutoHatch.SelectedEgg), Settings.AutoHatch.TripleEggs, Settings.AutoHatch.OctupleEggs)
 		end
 	end,
 	Enabled = Settings.AutoHatch.OpenEggs or false
@@ -403,7 +403,7 @@ for i = 1, 3 do
 
 						Candidates = {table.unpack(Candidates[1], 1, Six)}
 						if Settings.Automation[Flag] and (#Candidates == ((i == 3 and 1) or Six)) then
-							Network.Invoke(Flag, Candidates)
+							_L.Network.Invoke(Flag, Candidates)
 							task.wait(0.5)
 						end
 					end
@@ -451,9 +451,9 @@ MiscellaneousTab.Toggle({
 	Callback = function(Value)
 		Settings.Miscellaneous.ClaimRewards = Value
 		while Settings.Miscellaneous.ClaimRewards do
-			Network.Invoke("Redeem Rank Rewards")
-			Network.Invoke("Redeem VIP Rewards")
-			Network.Invoke("Daycare: Claim")
+			_L.Network.Invoke("Redeem Rank Rewards")
+			_L.Network.Invoke("Redeem VIP Rewards")
+			_L.Network.Invoke("Daycare: Claim")
 			task.wait(10)
 		end
 	end,
