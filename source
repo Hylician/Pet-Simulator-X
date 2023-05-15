@@ -26,7 +26,7 @@ local Network = {
 }
 
 local CurrencyOrder = {
-	"Easter Coins",
+	"Lucky Coins",
 	"Doodle Coins",
 	"Rainbow Coins",
 	"Tech Coins",
@@ -129,6 +129,9 @@ local AreaList = {
 
 	-- Kawaii
 	"Kawaii Tokyo", "Kawaii Village", "Kawaii Candyland", "Kawaii Temple",
+
+	-- EVENT
+	"Lucky Block Area"
 }
 
 local Folder = _L.Things
@@ -190,9 +193,9 @@ FarmTab.Toggle({
 		Settings.AutoFarm.FarmingEnabled = Value
 		local CurrentFarmingPets = {}
 		while task.wait() do
-		    if not Settings.AutoFarm.FarmingEnabled then
-		        break
-		    end
+			if not Settings.AutoFarm.FarmingEnabled then
+				break
+			end
 
 			if Settings.AutoFarm.FarmingType == "Normal" then
 				for Index, CoinData in pairs(ReturnCoins(Settings.AutoFarm.FarmingArea)) do
