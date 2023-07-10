@@ -173,7 +173,7 @@ end
 
 function ReturnCoins(Area)
 	local ReturnTable = {}
-	local ListCoins = _L.Network.Invoke("Get Coins")
+	local ListCoins = {} --_L.Network.Invoke("Get Coins")
 	for Id, CoinData in pairs(ListCoins) do
 		if Area == "All" or table.find(Places[Area], CoinData.a) then
 			local Table = CoinData
