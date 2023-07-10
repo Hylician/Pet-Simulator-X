@@ -25,7 +25,7 @@ function _L.Network.Invoke(FunctionName, ...)
 end
 
 local CurrencyOrder = {
-	"Lucky Coins",
+	"Popsicles",
 	"Doodle Coins",
 	"Rainbow Coins",
 	"Tech Coins",
@@ -101,7 +101,15 @@ local Places = {
 	["Kawaii Temple"] = {"Kawaii Temple", "Kawaii Temple FRONT"},
 
 	-- EVENT
-	["Lucky Block Area"] = {"Lucky Block Area", "Lucky Block Area FRONT"}
+	["Sandy Beach"] = {"Sandy Beach", "Sandy Beach FRONT"},
+	["Tiki Island"] = {"Tiki Island", "Tiki Island FRONT"},
+	["Pirate Cove"] = {"Pirate Cove", "Pirate Cove FRONT"},
+	["Rocky Cove"] = {"Rocky Cove", "Rocky Cove FRONT"},
+	["Paradise Falls"] = {"Paradise Falls", "Paradise Falls FRONT"},
+	["Atlantis Ocean"] = {"Atlantis Ocean", "Atlantis Ocean FRONT"},
+	["Sandcastle"] = {"Sandcastle", "Sandcastle FRONT"},
+	["Mystical Oasis"] = {"Mystical Oasis", "Mystical Oasis FRONT"},
+	["Sunny Skies"] = {"Sunny Skies", "Sunny Skies FRONT"}
 }
 
 local AreaList = {
@@ -133,7 +141,7 @@ local AreaList = {
 	"Kawaii Tokyo", "Kawaii Village", "Kawaii Candyland", "Kawaii Temple",
 
 	-- EVENT
-	"Lucky Block Area"
+	"Sandy Beach"
 }
 
 local Folder = _L.Things
@@ -281,7 +289,7 @@ EggTab.Toggle({
 	Text = "Open Eggs",
 	Callback = function(Value)
 		Settings.AutoHatch.OpenEggs = Value
-		while task.wait() and Settings.AutoHatch.OpenEggs do
+		while task.wait(3) and Settings.AutoHatch.OpenEggs do
 			_L.Network.Invoke("Buy Egg", string.format((Settings.AutoHatch.GoldenEggs and "Golden %s" or "%s"), Settings.AutoHatch.SelectedEgg), Settings.AutoHatch.TripleEggs, Settings.AutoHatch.OctupleEggs)
 		end
 	end,
